@@ -1,17 +1,19 @@
-//Implement following cat flags indicated in the struct
+//Implement test cases for cat2
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
 
 typedef struct {
-    int b;
-    int e; //implement
-    int n;
+    int b; 
+    int e; 
+    int n; 
     int s; //implement
-    int t; //implement
-    int u; //implement
-    int v; //implement
+    int t; 
+    int u; 
+    int v; 
 } Flags;
 
 int main(int argc, char **argv) {
@@ -36,23 +38,53 @@ int main(int argc, char **argv) {
     FILE *fptr;
     fptr = fopen(*(pos), "r");
 
-    char buffer[100];
-
+    int ch;
+    int prev = '\n';
     int line = 0;
+    int blk = 0;
+
     if (fptr == NULL) {
         printf("Error opening file\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n");
     } else {
-        while(fgets(buffer, 100, fptr) != NULL) 
+        if (flags.t || flags.e) flags.v = 1;
+        while ((ch = fgetc(fptr)) != EOF)
         {
-            if (flags.n) {
-                printf("%d: ", line++);
+            if (flags.n && prev=='\n') printf("%d: ", line++);
+            if (flags.b && prev=='\n' && ch!='\n') printf("%d: ", line++);
+            if (flags.s && ch=='\n' && prev=='\n') 
+            {
+                while ((ch = fgetc(fptr)) == '\n') prev = ch;
+                putchar('\n');
             }
-            if (flags.b && !flags.n && strcmp(buffer, "\n") != 0) {
-                printf("%d: ", line++);
+            if (flags.t && ch=='\t') 
+            {
+                printf("^I"); 
+            } 
+            else if (flags.e && ch=='\n') 
+            {
+                putchar('$');
+            } 
+            else if (flags.v) 
+            {
+                switch (ch)
+                {
+                    case '\0':
+                        printf("^@");
+                        break;
+                    case 0x7F:
+                        printf("^?");
+                        break;
+                    default:
+                        putchar(ch);
+                        break;  
+                }
+            } 
+            else 
+            {
+            putchar(ch);
             }
-            printf("%s", buffer);
+            prev = ch;
         }
-
         fclose(fptr);
     }
     return 0;
