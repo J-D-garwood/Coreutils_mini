@@ -1,5 +1,3 @@
-//Implement test cases for cat2
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +8,7 @@ typedef struct {
     int b; 
     int e; 
     int n; 
-    int s; //implement
+    int s; 
     int t; 
     int u; 
     int v; 
@@ -49,12 +47,14 @@ int main(int argc, char **argv) {
         if (flags.t || flags.e) flags.v = 1;
         while ((ch = fgetc(fptr)) != EOF)
         {
-            if (flags.n && prev=='\n') printf("%d: ", line++);
+            if (flags.n && prev=='\n' && !flags.b) printf("%d: ", line++);
             if (flags.b && prev=='\n' && ch!='\n') printf("%d: ", line++);
             if (flags.s && ch=='\n' && prev=='\n') 
             {
                 while ((ch = fgetc(fptr)) == '\n') prev = ch;
-                putchar('\n');
+                putchar('\n'); 
+                if (ch == EOF) break;
+                if (flags.n || flags.b) printf("%d: ", line++);
             }
             if (flags.t && ch=='\t') 
             {
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
             } 
             else if (flags.e && ch=='\n') 
             {
-                putchar('$');
+                printf("$\n");
             } 
             else if (flags.v) 
             {
