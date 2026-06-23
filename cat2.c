@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
             }
             prev = ch;
         }
-        fclose(fptr);
+        if (fptr != stdin && fptr != NULL) fclose(fptr);
     }
     return 0;
 }
