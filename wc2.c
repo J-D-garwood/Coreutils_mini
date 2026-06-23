@@ -19,14 +19,14 @@ int main(int argc, char **argv)
     int piped = 0;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-c") == 0) flags.c;        
-        else if (strcmp(argv[i], "-l") == 0) flags.l;
-        else if (strcmp(argv[i], "-m") == 0) flags.m;
-        else if (strcmp(argv[i], "-w") == 0) flags.w;
-        else if (strcmp(argv[i], "-L") == 0) flags.L;
+        if      (strcmp(argv[i], "-c") == 0) flags.c = 1;        
+        else if (strcmp(argv[i], "-l") == 0) flags.l = 1;
+        else if (strcmp(argv[i], "-m") == 0) flags.m = 1;
+        else if (strcmp(argv[i], "-w") == 0) flags.w = 1;
+        else if (strcmp(argv[i], "-L") == 0) flags.L = 1;
         else pos[npos++] = argv[i];        
     }
-    
+
     if (npos < 1) { piped = 1; npos++;}
 
     int ch;
@@ -34,4 +34,9 @@ int main(int argc, char **argv)
     int line = 0;
     int blk = 0;
     FILE * f;
+
+    for (int i = 0; i<npos; i++)
+    {
+
+    }
 }
