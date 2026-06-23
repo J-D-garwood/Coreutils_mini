@@ -16,8 +16,9 @@ typedef struct {
 
 int main(int argc, char **argv) {
     Flags flags = {0};
-    const char *pos[10];
+    const char ** pos = malloc(sizeof(char*)*argc);
     int npos = 0;
+    int piped = 0;
 
     for (int i = 1; i < argc; i++) 
     {
@@ -31,73 +32,71 @@ int main(int argc, char **argv) {
         else pos[npos++] = argv[i];
     }
 
-    FILE *fptr;
-
-    if (npos != 1) 
-    { 
-        if (npos==0) 
-        {
-            fptr = stdin;
-        }
-        else 
-        {
-            printf("Invalid Input\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n"); 
-            return 1; 
-        }
-    } else {
-        fptr = fopen(*(pos), "r");
-    }
+    if (npos < 1) { piped = 1; npos++;}
 
     int ch;
     int prev = '\n';
     int line = 0;
     int blk = 0;
+    FILE * f;
 
-    if (fptr == NULL) {
-        printf("Error opening file\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n");
-    } else {
-        if (flags.t || flags.e) flags.v = 1;
-        while ((ch = fgetc(fptr)) != EOF)
-        {
-            if (flags.n && prev=='\n' && !flags.b) printf("%d: ", line++);
-            if (flags.b && prev=='\n' && ch!='\n') printf("%d: ", line++);
-            if (flags.s && ch=='\n' && prev=='\n') 
-            {
-                while ((ch = fgetc(fptr)) == '\n') prev = ch;
-                putchar('\n'); 
-                if (ch == EOF) break;
-                if (flags.n || flags.b) printf("%d: ", line++);
-            }
-            if (flags.t && ch=='\t') 
-            {
-                printf("^I"); 
-            } 
-            else if (flags.e && ch=='\n') 
-            {
-                printf("$\n");
-            } 
-            else if (flags.v) 
-            {
-                switch (ch)
-                {
-                    case '\0':
-                        printf("^@");
-                        break;
-                    case 0x7F:
-                        printf("^?");
-                        break;
-                    default:
-                        putchar(ch);
-                        break;  
-                }
-            } 
-            else 
-            {
-            putchar(ch);
-            }
-            prev = ch;
+    for (int i = 0; i<npos; i++) 
+    {
+
+        if (!piped && strcmp(pos[i], "-") != 0) {
+            f = fopen(pos[i], "r");
         }
-        if (fptr != stdin && fptr != NULL) fclose(fptr);
+        else f = stdin;
+        
+        if (f == NULL) {
+            printf("\nError opening file\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n");
+        } else {
+            if (flags.t || flags.e) flags.v = 1;
+            while ((ch = fgetc(f)) != EOF)
+            {
+                if (flags.n && prev=='\n' && !flags.b) printf("%d: ", line++);
+                if (flags.b && prev=='\n' && ch!='\n') printf("%d: ", line++);
+                if (flags.s && ch=='\n' && prev=='\n') 
+                {
+                    while ((ch = fgetc(f)) == '\n') prev = ch;
+                    putchar('\n'); 
+                    if (ch == EOF) break;
+                    if (flags.n || flags.b) printf("%d: ", line++);
+                }
+                if (flags.t && ch=='\t') 
+                {
+                    printf("^I"); 
+                } 
+                else if (flags.e && ch=='\n') 
+                {
+                    printf("$\n");
+                } 
+                else if (flags.v) 
+                {
+                    switch (ch)
+                    {
+                        case '\0':
+                            printf("^@");
+                            break;
+                        case 0x7F:
+                            printf("^?");
+                            break;
+                        default:
+                            putchar(ch);
+                            break;  
+                    }
+                } 
+                else 
+                {
+                putchar(ch);
+                }
+                prev = ch;
+            }
+            if (f != stdin && f != NULL) fclose(f);
+        }
+        prev = '\n';
+        line = 0;
+        blk = 0;
     }
     return 0;
-}
+}   
