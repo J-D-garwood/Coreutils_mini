@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
     int ch;
     int prev = '\n';
     int line = 0;
-    int blk = 0;
     FILE * f;
 
     for (int i = 0; i<npos; i++) 
@@ -96,7 +95,6 @@ int main(int argc, char **argv) {
         }
         prev = '\n';
         line = 0;
-        blk = 0;
     }
     return 0;
 }   
