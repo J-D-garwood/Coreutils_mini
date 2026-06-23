@@ -31,10 +31,22 @@ int main(int argc, char **argv) {
         else pos[npos++] = argv[i];
     }
 
-    if (npos != 1) { printf("Invalid Input\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n"); return 1; }
-    
     FILE *fptr;
-    fptr = fopen(*(pos), "r");
+
+    if (npos != 1) 
+    { 
+        if (npos==0) 
+        {
+            fptr = stdin;
+        }
+        else 
+        {
+            printf("Invalid Input\nusage: cat2 [-b] [-e] [-n] [-s]  [-t]  [-u]  [-v] filepath\n"); 
+            return 1; 
+        }
+    } else {
+        fptr = fopen(*(pos), "r");
+    }
 
     int ch;
     int prev = '\n';
