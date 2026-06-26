@@ -81,7 +81,7 @@ int findFlags(int * flags, const char * s)
             // Unknown letter: report and abandon this whole token.
             // temp is discarded so partial state doesn't leak into *flags.
             fprintf(stderr, "wc3: invalid flag '%c'\n", ch);
-            return 0;
+            return -1;
         }
         ch = *(s + i);
     }
@@ -232,13 +232,15 @@ int main(int argc, char * argv[])
     // and avoids a malloc, but not portable to compilers without C99 VLAs.
     char * pos[argc];
     int npos = 0;
+    int flg = 0;;
 
     // Single pass over argv: anything findFlags consumes is a flag token;
     // everything else (including "-") falls through to the positional list.
     for (int i = 1; i < argc; i++)
     {
-        if (!findFlags(&flags, argv[i]))
-            pos[npos++] = argv[i];
+        flg = findFlags(&flags, argv[i]);
+        if (flg == 0) pos[npos++] = argv[i];
+        else if (flg == -1) return 0;
     }
 
     FILE * f;
@@ -266,7 +268,7 @@ int main(int argc, char * argv[])
             // fopen failure is reported per-file and we move on, so a bad
             // path in the middle of a list doesn't suppress the others.
             if (f == NULL) {
-                fprintf(stderr, "wc3: %s: %s\n", pos[i], strerror(errno));
+                fprintf(stderr, "wc4: %s: %s\n", pos[i], strerror(errno));
                 continue;
             } else {
                 printStatistics(f, &flags, filename);
