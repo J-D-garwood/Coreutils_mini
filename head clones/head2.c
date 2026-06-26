@@ -82,6 +82,8 @@ int findFlags(int * flags, const char * s)
 void printContent(FILE * f, int * flags, char * filename, long int num)
 { 
 
+    // add -q / -v functionality
+
     int newlines = 0;
     int bytes = 0;
 
@@ -100,6 +102,7 @@ void printContent(FILE * f, int * flags, char * filename, long int num)
             if (bytes == num) return;
         }
     }
+
     return; 
 }
 
@@ -112,6 +115,8 @@ int main(int argc, char * argv[])
 
     long int count = 10;
 
+    // A user should only be able to put one number in the command line arguments and not have
+    // repeat flags - add this functionality.
     for (int i = 1; i < argc; i++)
     {   
         if (is_integer(argv[i], &count)) continue;
