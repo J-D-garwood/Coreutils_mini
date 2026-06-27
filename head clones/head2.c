@@ -1,3 +1,5 @@
+// ADD ABILITY TO PARSE "-5" like command line args
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,7 +7,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-enum configs {line_byte, show_suppress};
+enum configs {LB, SH};
 
 int is_integer(const char * str, long int * num) {
     if (str == NULL || *str == '\0') return 0;
@@ -17,8 +19,6 @@ int is_integer(const char * str, long int * num) {
 
     if (errno == ERANGE) return 0;
 
-    // Check if endptr points to the null terminator
-    // If it doesn't, there were invalid trailing characters (e.g., "50a")
     if (*endptr != '\0') {
         return 0; 
     }
@@ -44,38 +44,47 @@ int check_bit(int * flags, int bit) {
     return (*flags & (1 << bit)) != 0;
 }
 
-void set_bits(int * flags, int * bits, int len) {
-    for (int i = 0; i < len; i++) {
-        *flags = (*flags | (1 << bits[i]));
-    }
-}
-
-int findFlags(int * flags, const char * s)
+int findFlags(int * flags, const char * s, long int * num, int * units, int * titles)
 {
-    int temp = 0;
+    int temp = *flags;
 
     if (*s != '-' || *(s + 1) == '\0')
         return 0;
 
     int i = 1;
-    char ch = *(s + i);
-
+    char ch = *(s + i); //
+    int num_check = is_integer((s+i), num);
+    if (num_check) return 1;
     while (ch != '\0')
     {
+        num_check = is_integer((s+i), num);
         i++;
-        if      (ch == 'n') temp |= (1 << line_byte);
-        else if (ch == 'c') temp & ~(1 << line_byte);
-        else if (ch == 'q') temp |= (1 << show_suppress);
-        else if (ch == 'v') temp &= ~(1 << show_suppress);
+        if (ch == 'n' && !(*units)) 
+        {
+            temp |= (1 << LB); // 000 | 001 = 001
+            *units = 1;
+        }
+        else if (ch == 'c' && !(*units)) {
+            temp &= ~(1 << LB); // 011 & 110 = 010
+            *units = 1;
+        }
+        else if (ch == 'v' && !(*titles)) {
+            temp |= (1 << SH); // 001 | 010
+            *titles = 1;
+        }
+        else if (ch == 'q' && !(*titles)) {
+            temp &= ~(1 << SH); // 001 | 010
+            *titles = 1;
+        }
+        else if (num_check) break;
         else {
-            // Unknown letter: report and abandon this whole token.
-            // temp is discarded so partial state doesn't leak into *flags.
+
             fprintf(stderr, "head: invalid flag '%c'\n", ch);
             return -1;
         }
         ch = *(s + i);
     }
-    *flags &= temp;
+    *flags = temp;
     return 1;
 }
 
@@ -87,15 +96,15 @@ void printContent(FILE * f, int * flags, char * filename, long int num)
     int newlines = 0;
     int bytes = 0;
 
-    int lines = check_bit(flags, line_byte);
-
     int ch;
+    if (check_bit(flags, SH)) printf("==> %s <==\n", filename);
+    if (num <= 0) return;
 
     while((ch = fgetc(f)) != EOF)
     {
         putchar(ch);
-        if (lines) {
-            if (ch == '\n') newlines++;
+        if (check_bit(flags, LB)) {
+            if (ch == '\n') newlines++; 
             if (newlines == num) return;
         } else {
             bytes++;
@@ -108,23 +117,22 @@ void printContent(FILE * f, int * flags, char * filename, long int num)
 
 int main(int argc, char * argv[])
 {
-    int flags = 3;
+    int flags = (1 << LB);
     char * pos[argc];
     int npos = 0;
     int toggle = 0;
 
+    int units = 0;
+    int titles = 0;
     long int count = 10;
 
-    // A user should only be able to put one number in the command line arguments and not have
-    // repeat flags - add this functionality.
     for (int i = 1; i < argc; i++)
     {   
         if (is_integer(argv[i], &count)) continue;
-        toggle = findFlags(&flags, argv[i]);
+        toggle = findFlags(&flags, argv[i], &count, &units, &titles);
         if (toggle == 0) pos[npos++] = argv[i];
-        else if (toggle == -1) return 0;
+        else if (toggle == -1) return -1;
     }
-
     FILE * f;
     char * filename;
 
@@ -144,7 +152,7 @@ int main(int argc, char * argv[])
             }
 
             if (f == NULL) {
-                fprintf(stderr, "wc4: %s: %s\n", pos[i], strerror(errno));
+                fprintf(stderr, "head2: %s: %s\n", pos[i], strerror(errno));
                 continue;
             } else {
                 printContent(f, &flags, filename, count);
