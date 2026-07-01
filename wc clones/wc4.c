@@ -232,7 +232,7 @@ int main(int argc, char * argv[])
     // and avoids a malloc, but not portable to compilers without C99 VLAs.
     char * pos[argc];
     int npos = 0;
-    int flg = 0;;
+    int flg = 0;
 
     // Single pass over argv: anything findFlags consumes is a flag token;
     // everything else (including "-") falls through to the positional list.

@@ -17,6 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <head2.h>
 
 /*
  * Bit positions within the `flags` bitfield.
