@@ -4,16 +4,7 @@
         {
             "label": "build-debug",
             "type": "shell",
-            "command": "gcc",
-            "args": [
-                "-g",
-                "-O0",
-                "-Wall",
-                "-Wextra",
-                "${fileDirname}/*c",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}.exe"
-            ],
+            "command": "make",
             "group": { "kind": "build", "isDefault": true },
             "problemMatcher": ["$gcc"]
         }

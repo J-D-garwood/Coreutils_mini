@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -I"head clones"
+CFLAGS = -std=c11 -g -Wall -Wextra -I"head clones"
 
 .PHONY: all clean
 

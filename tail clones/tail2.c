@@ -70,10 +70,21 @@ int liveContent(char * files[], int * flags, int file_count)
     return 0;
 };
 
+// WORKING on static content
+int editAndPrint(int fd, int * flags, int count) {
+    if (check_bit(flags, LINE)) {
+    } else {
+    }
+}
 int staticContent(char * files[], int * flags, int file_count)
 {
     int fd;
     struct stat st;
+    char buf[257];
+    off_t place;
+    int len = 256;
+    int complete = 0;
+    int n;
     for (int i = 0; i < file_count; i++) {
         fd = open(files[i], O_RDONLY);
         if (fd == -1) 
@@ -82,8 +93,26 @@ int staticContent(char * files[], int * flags, int file_count)
             return 1;
         }
         if (fstat(fd, &st) == -1) {perror("fstat"); close(fd); return 1; }
+    
+        //printf("name: %s size: %ld\n", files[i] ,st.st_size);
 
-        printf("name: %s size: %ld\n", files[i] ,st.st_size);
+        place = st.st_size;
+        while (!complete) {
+            place = place - 256;
+            if (place<0) {
+                len = 256 + place; complete = 1;
+                place = 0;
+            }
+            lseek(fd, place, SEEK_SET);
+            n = read(fd, buf, len);
+            if (n == -1) {perror("read");  close(fd); return 1;}
+            buf[n] = '\0';
+            if (check_bit(flags, ))
+        }
+
+        len = 256;
+        complete = 0;
+        close(fd);
     }
     return 0;
 }
