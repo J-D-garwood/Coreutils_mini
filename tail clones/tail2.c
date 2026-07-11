@@ -65,10 +65,28 @@ int parseArg(char * arg, char * pos[], int * count, int * npos, int * flags, int
     return 0;
 }
 
-void liveContent(char * files[], int * flags);
+int liveContent(char * files[], int * flags, int file_count)
+{ 
+    return 0;
+};
 
-void staticContent(char * files[], int * flags);
+int staticContent(char * files[], int * flags, int file_count)
+{
+    int fd;
+    struct stat st;
+    for (int i = 0; i < file_count; i++) {
+        fd = open(files[i], O_RDONLY);
+        if (fd == -1) 
+        {
+            perror("open");
+            return 1;
+        }
+        if (fstat(fd, &st) == -1) {perror("fstat"); close(fd); return 1; }
 
+        printf("name: %s size: %ld\n", files[i] ,st.st_size);
+    }
+    return 0;
+}
 
 int main(int argc, char * argv[]) {
 
@@ -82,22 +100,27 @@ int main(int argc, char * argv[]) {
         if (parseArg(argv[i], pos, &count, &npos, &flags, &startfrom) != 0) return EXIT_FAILURE;
     }
 
-    if (check_bit(&flags, LINE)&&check_bit(&flags, LINE)) { 
-        fprintf(stderr, "tail: cannot use "-c" and "-n" flags concurrently\n", ch); 
+    if (check_bit(&flags, LINE)&&check_bit(&flags, BYTE)) { 
+        fprintf(stderr, "tail: cannot use '-c' and '-n' flags concurrently\n"); 
         return EXIT_FAILURE;
     }
     else if (check_bit(&flags, QUIET)&&check_bit(&flags, VERBOSE)) {
-        fprintf(stderr, "tail: cannot use "-q" and "-v" flags concurrently\n", ch); 
+        fprintf(stderr, "tail: cannot use '-q' and '-v' flags concurrently\n"); 
         return EXIT_FAILURE;
     }
     else if (check_bit(&flags, FOLLOW_by_descriptor)&&check_bit(&flags, FOLLOW_by_name)) { 
-        fprintf(stderr, "tail: cannot use "-f" and "-F" flags concurrently\n", ch); 
+        fprintf(stderr, "tail: cannot use '-f' and '-F' flags concurrently\n"); 
         return EXIT_FAILURE;
     }
-
+    
+    int live = (check_bit(&flags, FOLLOW_by_descriptor)|check_bit(&flags, FOLLOW_by_name));
     if (flags == 0) flags = (1 << LINE);
 
-
+    if (live) {
+        //insert live content function here
+    } else {
+        if (staticContent(pos, &flags, npos)==1) { perror("Error printing static content"); return 1;}
+    }
     // if live (-f -F)
     // parse pos through and continually print
     // else
