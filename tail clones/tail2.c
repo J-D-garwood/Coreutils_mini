@@ -1,5 +1,7 @@
 // Write static content function (get used to posix i/o calls) THEN live content 
+// EVENTUALLY YOU NEED TO EXPAND THE FUNCTION SO IT'S NOT JUST TEXT ONLY
 
+// NEXT UP, IMPLEMENT -n K functionality!!!
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -9,9 +11,7 @@
 #include <string.h>
 #include "helpers.h"
 
-enum Flags {LINE, BYTE, VERBOSE, QUIET, START_FROM, FOLLOW_by_descriptor, FOLLOW_by_name};
-
-int parseFlags(char * arg, int * flags, int * count,  int * startfrom) {
+int parseFlags(char * arg, int * flags,  int * startfrom) {
 
     long int tmp_s;
 
@@ -53,7 +53,7 @@ int parseFlags(char * arg, int * flags, int * count,  int * startfrom) {
 int parseArg(char * arg, char * pos[], int * count, int * npos, int * flags, int * startfrom) {
     long int temp;
     if (*arg == '-' || *arg == '+') {
-        if (parseFlags(arg, flags, count, startfrom) != 0) return EXIT_FAILURE;
+        if (parseFlags(arg, flags, startfrom) != 0) return EXIT_FAILURE;
         //printf("flag\n");
     } else if (is_integer(arg, &temp)) {
         //printf("number\n");
@@ -65,56 +65,26 @@ int parseArg(char * arg, char * pos[], int * count, int * npos, int * flags, int
     return 0;
 }
 
-int liveContent(char * files[], int * flags, int file_count)
-{ 
-    return 0;
-};
-
-// WORKING on static content
-int editAndPrint(int fd, int * flags, int count) {
-    if (check_bit(flags, LINE)) {
-    } else {
-    }
-}
-int staticContent(char * files[], int * flags, int file_count)
+int staticContent(char * files[], int * flags, int file_count, int count, int startfrom)
 {
     int fd;
     struct stat st;
-    char buf[257];
-    off_t place;
-    int len = 256;
-    int complete = 0;
-    int n;
+    int ret_flag = 0;
     for (int i = 0; i < file_count; i++) {
         fd = open(files[i], O_RDONLY);
         if (fd == -1) 
         {
             perror("open");
-            return 1;
         }
         if (fstat(fd, &st) == -1) {perror("fstat"); close(fd); return 1; }
     
-        //printf("name: %s size: %ld\n", files[i] ,st.st_size);
+        if (check_bit(flags, LINE)) {
+            if (print_by_line(fd, flags, &st, count, startfrom) == 1) {perror("line printing"); return 1;}
 
-        place = st.st_size;
-        while (!complete) {
-            place = place - 256;
-            if (place<0) {
-                len = 256 + place; complete = 1;
-                place = 0;
-            }
-            lseek(fd, place, SEEK_SET);
-            n = read(fd, buf, len);
-            if (n == -1) {perror("read");  close(fd); return 1;}
-            buf[n] = '\0';
-            if (check_bit(flags, ))
         }
-
-        len = 256;
-        complete = 0;
-        close(fd);
+        //byte variants to be added later
     }
-    return 0;
+    return ret_flag;
 }
 
 int main(int argc, char * argv[]) {
@@ -122,7 +92,7 @@ int main(int argc, char * argv[]) {
     int flags = 0;
     char * pos[argc];
     int npos = 0;
-    int count = 10;
+    int count = 2;
     int startfrom = -1;
 
     for (int i = 1; i < argc; i++) {
@@ -146,13 +116,10 @@ int main(int argc, char * argv[]) {
     if (flags == 0) flags = (1 << LINE);
 
     if (live) {
-        //insert live content function here
+        //to be added later
     } else {
-        if (staticContent(pos, &flags, npos)==1) { perror("Error printing static content"); return 1;}
+
+        if (staticContent(pos, &flags, npos, count, startfrom)==1) { perror("Error printing static content"); return 1;}
     }
-    // if live (-f -F)
-    // parse pos through and continually print
-    // else
-    // standard printing
     return 0;
 };
