@@ -112,7 +112,7 @@ int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom
         off_t size = st->st_size;
         off_t offset = size - len;
         target = count;
-        while (offset >= len) {
+        while (offset > 0) {
             lseek(fd, offset, SEEK_SET);
             n = read(fd, buf, len);
             if (n == -1) {perror("read");  close(fd); return 1;}
@@ -122,7 +122,14 @@ int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom
             offset -= len;
         } 
 
-        
+        if (!found){
+            lseek(fd, 0, SEEK_SET);
+            n = read(fd, buf, offset+len);
+            if (n == -1) {perror("read");  close(fd); return 1;}
+            buf[n] = '\0';
+            if (newlines_backwards(buf, &target, &partition, &newline_counter, &n)) found = 1;
+        }
+
 
         if (found)
         {
