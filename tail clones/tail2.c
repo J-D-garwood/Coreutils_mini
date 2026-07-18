@@ -118,7 +118,6 @@ int main(int argc, char * argv[]) {
     if (live) {
         //to be added later
     } else {
-
         if (staticContent(pos, &flags, npos, count, startfrom)==1) { perror("Error printing static content"); return 1;}
     }
     return 0;

@@ -56,17 +56,31 @@ int newlines_parser(char * buf, int * target, int * start, int * qty)
     return 0;
 }
 
+int newlines_backwards(char * buf, int * target, int *start, int * qty, int * end) {
+    int i = *(end) - 1;
+    int newline_counter = 0;
+    char newline = 0x0A;
+    while (i>-1) {
+        if (memcmp(buf + i, &newline, 1) == 0) newline_counter++;
+        if (newline_counter == *target) {*start = i+1; return 1;}
+        i--;
+    }
+    *qty = newline_counter;
+    return 0;
+}
+
 
 int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom) 
 {
     char buf[255];
     int len = 254;
     int n;
-    int target = startfrom - 1;
+    int target;
     int newline_counter = 0;
     int partition;
     int found = 0;
     if (check_bit(flags, START_FROM)) {
+        target = startfrom - 1;
         if (target <= 0) {
         // start at line 1: just dump the whole file
         while ((n = read(fd, buf, sizeof(buf))) > 0)
@@ -83,6 +97,7 @@ int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom
             buf[n] = '\0';
             if (newlines_parser(buf, &target, &partition, &newline_counter)) {found = 1; break;}
             target = target - newline_counter;
+
         }
 
         if (found)
@@ -93,7 +108,38 @@ int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom
             }
             if (n<0) {perror("read"); return 1;}
         }
-    } 
+    } else {
+        off_t size = st->st_size;
+        off_t offset = size - len;
+        target = count;
+        while (offset >= len) {
+            lseek(fd, offset, SEEK_SET);
+            n = read(fd, buf, len);
+            if (n == -1) {perror("read");  close(fd); return 1;}
+            buf[n] = '\0';
+            if (newlines_backwards(buf, &target, &partition, &newline_counter, &n)) {found = 1; break;}
+            target = target - newline_counter;
+            offset -= len;
+        } 
+
+        
+
+        if (found)
+        {
+            write(STDOUT_FILENO, buf + partition, n-partition);
+            while ((n = read(fd, buf, sizeof(buf)))>0) {
+                write(STDOUT_FILENO, buf, n);
+            }
+            if (n<0) {perror("read"); return 1;}
+
+        } else {
+            lseek(fd, 0, SEEK_SET);
+            while ((n = read(fd, buf, sizeof(buf)))>0) {
+                write(STDOUT_FILENO, buf, n);
+            }
+            if (n<0) {perror("read"); return 1;}
+        }
+    }
     close(fd);
     return 0;
 }
