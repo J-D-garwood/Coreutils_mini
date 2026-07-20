@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/tail2.exe",
-            "args": ["-n", "100", "test.txt"],
+            "args": ["-c", "+12", "test.txt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

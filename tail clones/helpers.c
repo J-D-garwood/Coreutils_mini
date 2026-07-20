@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#define MAX(a, b) (((a) > (b)) ? a : b)
 
 int check_bit(int * flags, int bit) {
     return (*flags & (1 << bit)) != 0;
@@ -68,6 +69,37 @@ int newlines_backwards(char * buf, int * target, int *start, int * qty, int * en
     *qty = newline_counter;
     return 0;
 }
+
+int print_by_byte(int fd, int *flags, struct stat * st, int count, int startfrom) 
+{
+    int n;
+    char byte;
+    if (check_bit(flags, START_FROM))
+    {
+        if ((startfrom <= st->st_size) && (startfrom-1>=0)) {
+            lseek(fd, startfrom-1, SEEK_SET);
+            while (1) {
+                n = read(fd, &byte, 1);
+                if (n < 0) {perror("read"); close(fd); return 1;}
+                if (n == 0) break;
+                write(STDOUT_FILENO, &byte, 1);
+            }
+        }
+    } else {
+        if (count>=0) {
+            lseek(fd, MAX(0, st->st_size-count), SEEK_SET);
+            while (1) {
+                n = read(fd, &byte, 1);
+                if (n < 0) {perror("read"); close(fd); return 1;}
+                if (n == 0) break;
+                write(STDOUT_FILENO, &byte, 1);
+            }
+        }
+    }
+    close(fd);
+    return 0;
+}
+
 
 
 int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom) 

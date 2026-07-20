@@ -1,7 +1,7 @@
 // Write static content function (get used to posix i/o calls) THEN live content 
 // EVENTUALLY YOU NEED TO EXPAND THE FUNCTION SO IT'S NOT JUST TEXT ONLY
 
-// NEXT UP, IMPLEMENT -n K functionality!!!
+// NEXT UP, IMPLEMENT -n K (byte-wise) functionality!!!
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -69,7 +69,6 @@ int staticContent(char * files[], int * flags, int file_count, int count, int st
 {
     int fd;
     struct stat st;
-    int ret_flag = 0;
     for (int i = 0; i < file_count; i++) {
         fd = open(files[i], O_RDONLY);
         if (fd == -1) 
@@ -80,11 +79,12 @@ int staticContent(char * files[], int * flags, int file_count, int count, int st
     
         if (check_bit(flags, LINE)) {
             if (print_by_line(fd, flags, &st, count, startfrom) == 1) {perror("line printing"); return 1;}
-
+        } else {
+            if (print_by_byte(fd, flags, &st, count, startfrom) == 1) {perror("byte printing"); return 1;}
         }
         //byte variants to be added later
     }
-    return ret_flag;
+    return 0;
 }
 
 int main(int argc, char * argv[]) {
