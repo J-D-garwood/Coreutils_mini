@@ -70,6 +70,9 @@ int staticContent(char * files[], int * flags, int file_count, int count, int st
     int fd;
     struct stat st;
     for (int i = 0; i < file_count; i++) {
+        if (check_bit(flags, VERBOSE)) {
+            printf("==> %s <==\n", files[i]);
+        }
         fd = open(files[i], O_RDONLY);
         if (fd == -1) 
         {

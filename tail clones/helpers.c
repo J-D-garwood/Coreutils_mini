@@ -70,29 +70,30 @@ int newlines_backwards(char * buf, int * target, int *start, int * qty, int * en
     return 0;
 }
 
+// char by char read to way too slow!! Nee to fix
 int print_by_byte(int fd, int *flags, struct stat * st, int count, int startfrom) 
 {
     int n;
-    char byte;
+    char bytes[4096];
     if (check_bit(flags, START_FROM))
     {
         if ((startfrom <= st->st_size) && (startfrom-1>=0)) {
             lseek(fd, startfrom-1, SEEK_SET);
             while (1) {
-                n = read(fd, &byte, 1);
+                n = read(fd, &bytes, sizeof(bytes));
                 if (n < 0) {perror("read"); close(fd); return 1;}
                 if (n == 0) break;
-                write(STDOUT_FILENO, &byte, 1);
+                write(STDOUT_FILENO, &bytes, n);
             }
         }
     } else {
         if (count>=0) {
             lseek(fd, MAX(0, st->st_size-count), SEEK_SET);
             while (1) {
-                n = read(fd, &byte, 1);
+                n = read(fd, &bytes, sizeof(bytes));
                 if (n < 0) {perror("read"); close(fd); return 1;}
                 if (n == 0) break;
-                write(STDOUT_FILENO, &byte, 1);
+                write(STDOUT_FILENO, &bytes, n);
             }
         }
     }
@@ -104,8 +105,8 @@ int print_by_byte(int fd, int *flags, struct stat * st, int count, int startfrom
 
 int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom) 
 {
-    char buf[255];
-    int len = 254;
+    char buf[4096];
+    int len = 4095;
     int n;
     int target;
     int newline_counter = 0;
