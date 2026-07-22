@@ -1,7 +1,14 @@
-// Write static content function (get used to posix i/o calls) THEN live content 
-// EVENTUALLY YOU NEED TO EXPAND THE FUNCTION SO IT'S NOT JUST TEXT ONLY
 
-// NEXT UP, IMPLEMENT -n K (byte-wise) functionality!!!
+/// TO DO IMPLEMENT -f and -F functionality.
+// Steps
+// 1. Create a struct which holds all important data
+// 2. modify printstatic content so that (upon the fliping of an -f -F switch passed as a int param)
+//  it adds important information for each file into that struct
+// and then appends that instantiated struct to an array.. may require malloc.. yay!!
+// 3. After print static content has run as per usual define a new function that repeatedly loops through 
+// the struct array previously formed and runs the -f -F operations. ;)
+// 4. Review -f and -F operations to make sure we nail them, we're on the home stretch
+//
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -69,25 +76,27 @@ int staticContent(char * files[], int * flags, int file_count, int count, int st
 {
     int fd;
     struct stat st;
+    int status = 0;
     for (int i = 0; i < file_count; i++) {
-        if (check_bit(flags, VERBOSE)) {
-            printf("==> %s <==\n", files[i]);
-        }
         fd = open(files[i], O_RDONLY);
         if (fd == -1) 
         {
             perror("open");
+            status = 1; 
+            continue;
         }
-        if (fstat(fd, &st) == -1) {perror("fstat"); close(fd); return 1; }
-    
+        if (check_bit(flags, VERBOSE)) {
+            printf("==> %s <==\n", files[i]);
+        }
+        if (fstat(fd, &st) == -1) {perror("fstat"); close(fd); status = 1; continue;}
         if (check_bit(flags, LINE)) {
-            if (print_by_line(fd, flags, &st, count, startfrom) == 1) {perror("line printing"); return 1;}
+            if (print_by_line(fd, flags, &st, count, startfrom) == 1) {perror("line printing"); status = 1; continue;}
         } else {
-            if (print_by_byte(fd, flags, &st, count, startfrom) == 1) {perror("byte printing"); return 1;}
+            if (print_by_byte(fd, flags, &st, count, startfrom) == 1) {perror("byte printing"); status = 1; continue;}
         }
         //byte variants to be added later
     }
-    return 0;
+    return status;
 }
 
 int main(int argc, char * argv[]) {
@@ -95,7 +104,7 @@ int main(int argc, char * argv[]) {
     int flags = 0;
     char * pos[argc];
     int npos = 0;
-    int count = 2;
+    int count = 10;
     int startfrom = -1;
 
     for (int i = 1; i < argc; i++) {

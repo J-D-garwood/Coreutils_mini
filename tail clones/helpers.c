@@ -170,14 +170,14 @@ int print_by_line(int fd, int *flags, struct stat * st, int count, int startfrom
             while ((n = read(fd, buf, sizeof(buf)))>0) {
                 write(STDOUT_FILENO, buf, n);
             }
-            if (n<0) {perror("read"); return 1;}
+            if (n<0) {perror("read"); close(fd); return 1;}
 
         } else {
             lseek(fd, 0, SEEK_SET);
             while ((n = read(fd, buf, sizeof(buf)))>0) {
                 write(STDOUT_FILENO, buf, n);
             }
-            if (n<0) {perror("read"); return 1;}
+            if (n<0) {perror("read"); close(fd); return 1;}
         }
     }
     close(fd);
